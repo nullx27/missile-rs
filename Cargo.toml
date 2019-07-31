@@ -1,0 +1,9 @@
+[package]
+name = "missle"
+version = "0.1.0"
+authors = ["Andre Peiffer <necrotex@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+hidapi = "0.5.2"
+console = "0.7.7"
