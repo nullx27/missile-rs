@@ -1,14 +1,16 @@
-mod driver;
+mod launcher;
 
 use console::{Term, Key, style};
-use driver::{Launcher, Commands};
+use launcher::{Launcher, Commands};
 
 fn main() {
-    println!("{} {} {}", style("Syntek").blue(), style("USB").red(),  style("Missile Launcher").white());
-    println!("Use the {} to move, {} to stop and {} to fire.", style("arrow keys").green(), style("space").green(), style("enter").green());
+    println!("{} {} {}", style("Syntek").blue(), style("USB").red(), style("Missile Launcher").white());
+    println!("Use the {} to move, and {} to fire. To stop the current action press the same key again.",
+             style("arrow keys").green(),
+             style("space").green());
 
     let term = Term::stdout();
-    let launcher = Launcher::new();
+    let mut launcher = Launcher::new();
 
     loop {
         match term.read_key().unwrap() {
@@ -16,9 +18,8 @@ fn main() {
             Key::ArrowRight => launcher.execute_command(Commands::RIGHT),
             Key::ArrowUp => launcher.execute_command(Commands::UP),
             Key::ArrowDown => launcher.execute_command(Commands::DOWN),
-            Key::Enter => launcher.execute_command(Commands::FIRE),
-            //Key::Char(char::from(0x32)) => launcher.execute_command(Commands::STOP),
-            Key::Escape => std::process::exit(0),
+            Key::Char(' ') => launcher.execute_command(Commands::FIRE),
+            Key::Escape => break,
             _ => continue
         }
     }

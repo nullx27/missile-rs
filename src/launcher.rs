@@ -1,5 +1,8 @@
 const PACKET_SIZE: usize = 8;
+const VID: u16 = 0x2123;
+const PID: u16 = 0x1010;
 
+#[derive(PartialEq, Clone)]
 pub enum Commands {
     DOWN = 0x01,
     UP = 0x02,
@@ -10,7 +13,8 @@ pub enum Commands {
 }
 
 pub struct Launcher {
-    dev: hidapi::HidDevice
+    dev: hidapi::HidDevice,
+    last_cmd: Commands,
 }
 
 impl Launcher {
@@ -20,21 +24,23 @@ impl Launcher {
             Err(_) => panic!("Can't init hidapi!"),
         };
 
-        let (vid, pid) = (0x2123, 0x1010);
-        let device = match api.open(vid, pid) {
+        let device = match api.open(VID, PID) {
             Ok(dev) => dev,
             Err(_) => panic!("Can't find missile launcher! Is it plugged in?"),
         };
 
         device.send_feature_report(&[0x00; PACKET_SIZE]);
 
-        println!("{:#?}", device.get_manufacturer_string().unwrap());
-        println!("{:#?}", device.get_product_string().unwrap());
-
-        Launcher { dev: device }
+        Launcher { dev: device, last_cmd: Commands::STOP }
     }
 
-    pub fn execute_command(&self, cmd: Commands) {
+    pub fn execute_command(&mut self, mut cmd: Commands) {
+        if cmd == self.last_cmd {
+            cmd = Commands::STOP;
+        }
+
+        self.last_cmd = cmd.clone();
+
         let payload = [0x00, 0x02, cmd as u8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
         self.dev.write(&payload).expect("Can't write payload to device!");
     }
